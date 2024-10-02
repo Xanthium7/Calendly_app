@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 export default function Home() {
   const { userId } = auth();
   if (userId != null) {
-    redirect("/events");
+    redirect("/");
   }
   return (
     <div className="text-center container my-4 mx-auto">
