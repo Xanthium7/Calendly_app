@@ -1,9 +1,12 @@
-import { Form, useForm } from "react-hook-form";
+"use client";
+
+import { useForm } from "react-hook-form";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventFormSchema } from "@/app/schema/events";
 import {
+  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -12,6 +15,11 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
+import { createEvent } from "@/server/actions/events";
 
 const schema = z.object({
   name: z.string(),
@@ -26,12 +34,26 @@ export function EventForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof eventFormSchema>) {
+  async function onSubmit(values: z.infer<typeof eventFormSchema>) {
+    const data = await createEvent(values);
+
+    if (data?.error) {
+      form.setError("root", { message: "There was an Error" });
+    }
+
     console.log(values);
   }
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} action="">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex gap-6 flex-col"
+      >
+        {form.formState.errors.root && (
+          <div className="text-destructive text-sm">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <FormField
           control={form.control}
           name="name"
@@ -48,6 +70,62 @@ export function EventForm() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="durationInMinutes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} />
+              </FormControl>
+              <FormDescription>In minutes</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea className="rezise-none h-28" {...field} />
+              </FormControl>
+              <FormDescription>Optional Description</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="isActive"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </div>
+              <FormLabel>Active</FormLabel>
+
+              <FormDescription>
+                Inactive events will not be visible
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex gap-2 justify-end">
+          <Button type="button" asChild variant="outline">
+            <Link href="/events">Cancel</Link>
+          </Button>
+          <Button type="submit">Save</Button>
+        </div>
       </form>
     </Form>
   );
