@@ -81,7 +81,7 @@ function EventCard({
 }: EventCardProps) {
   return (
     <Card
-      className={`flex flex-col ${isActive ? "opacity-100" : "opacity-50"}`}
+      className={`flex flex-col ${isActive ? "opacity-100" : "opacity-50 "}`}
     >
       <CardHeader>
         <CardTitle>{name}</CardTitle>
