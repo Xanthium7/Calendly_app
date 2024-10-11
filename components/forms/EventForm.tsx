@@ -19,22 +19,34 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
-import { createEvent } from "@/server/actions/events";
+import { createEvent, updateEvent } from "@/server/actions/events";
 
 const schema = z.object({
   name: z.string(),
 });
 
-export function EventForm() {
+export function EventForm({
+  event,
+}: {
+  event?: {
+    id: string;
+    name: string;
+    description?: string;
+    isActive: boolean;
+    durationInMinutes: number;
+  };
+}) {
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
-    defaultValues: {
+    defaultValues: event ?? {
       isActive: true,
       durationInMinutes: 30,
     },
   });
 
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
+    const action =
+      event == null ? createEvent : updateEvent.bind(null, event.id);
     const data = await createEvent(values);
 
     if (data?.error) {
