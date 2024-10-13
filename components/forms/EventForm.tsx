@@ -19,7 +19,18 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
-import { createEvent, updateEvent } from "@/server/actions/events";
+import { createEvent, deleteEvent, updateEvent } from "@/server/actions/events";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import { useState, useTransition } from "react";
 
 const schema = z.object({
   name: z.string(),
@@ -43,6 +54,7 @@ export function EventForm({
       durationInMinutes: 30,
     },
   });
+  const [isDeletePending, startDeleteTransition] = useTransition();
 
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
     const action =
@@ -133,6 +145,41 @@ export function EventForm({
           )}
         />
         <div className="flex gap-2 justify-end">
+          {event && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructiveGhost"
+                  disabled={isDeletePending || form.formState.isSubmitting}
+                >
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are Your Sure?</AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      startDeleteTransition(async () => {
+                        const data = await deleteEvent(event.id);
+                        if (data?.error) {
+                          form.setError("root", {
+                            message: "There was an Error",
+                          });
+                        }
+                      });
+                    }}
+                    disabled={isDeletePending || form.formState.isSubmitting}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           <Button type="button" asChild variant="outline">
             <Link href="/events">Cancel</Link>
           </Button>
